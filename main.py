@@ -282,12 +282,12 @@ class GuildOrdersPlugin(Star):
             yield event.plain_result("❌ 请指定订单号\n用法: `/接单 [订单号]`")
             return
 
-        order_id = parts[1].strip()
+        order_id = parts[1].strip().upper().upper()
         group_orders = self._get_group_orders(group_id)
 
         target_order = None
         for o in group_orders:
-            if o["order_id"] == order_id:
+            if o["order_id"].upper() == order_id:
                 target_order = o
                 break
 
@@ -331,12 +331,12 @@ class GuildOrdersPlugin(Star):
             yield event.plain_result("❌ 请指定订单号\n用法: `/完成 [订单号]`")
             return
 
-        order_id = parts[1].strip()
+        order_id = parts[1].strip().upper().upper()
         group_orders = self._get_group_orders(group_id)
 
         target_order = None
         for o in group_orders:
-            if o["order_id"] == order_id:
+            if o["order_id"].upper() == order_id:
                 target_order = o
                 break
 
@@ -385,7 +385,7 @@ class GuildOrdersPlugin(Star):
             )
             return
 
-        order_id = parts[1].strip()
+        order_id = parts[1].strip().upper()
         raw_content = parts[2].strip()
 
         # 提取报酬（如果有）
@@ -410,7 +410,7 @@ class GuildOrdersPlugin(Star):
         target_order = None
         target_idx = None
         for idx, o in enumerate(group_orders):
-            if o["order_id"] == order_id:
+            if o["order_id"].upper() == order_id:
                 target_idx = idx
                 target_order = o
                 break
@@ -449,7 +449,69 @@ class GuildOrdersPlugin(Star):
             f"💰 **新报酬**: {target_order.get('reward', '无')}\n\n"
             f"📌 **当前状态**: {self._order_to_text(target_order)}"
         )
+    @filter.command("放弃订单")
+    async def cmd_放弃订单(self, event: AstrMessageEvent):
+        """
+        放弃已接取的订单（仅接单人）
+        用法: /放弃订单 [订单号]
+        示例: /放弃订单 ORD-0001
+        """
+        group_id = event.message_obj.group_id
+        if not group_id:
+            yield event.plain_result("❌ 该功能仅支持群聊")
+            return
 
+        parts = event.message_str.strip().split(" ", 1)
+        if len(parts) < 2:
+            yield event.plain_result("❌ 请指定订单号\n用法: `/放弃订单 [订单号]`")
+            return
+
+        order_id = parts[1].strip().upper()
+        group_orders = self._get_group_orders(group_id)
+
+        # 查找订单
+        target_order = None
+        for o in group_orders:
+            if o["order_id"].upper() == order_id:
+                target_order = o
+                break
+
+        if not target_order:
+            yield event.plain_result(f"❌ 未找到订单 `{order_id}`，请检查订单号")
+            return
+
+        # 状态检查：只有进行中的订单可以放弃
+        if target_order["status"] == "pending":
+            yield event.plain_result(f"❌ 订单 `{order_id}` 尚未被接取，无需放弃")
+            return
+
+        if target_order["status"] == "completed":
+            yield event.plain_result(f"❌ 订单 `{order_id}` 已完成，无法放弃")
+            return
+
+        # 权限检查：只有接单人本人可以放弃
+        if target_order["acceptor_id"] != event.get_sender_id():
+            yield event.plain_result(f"❌ 只有接单人 `{target_order.get('acceptor_name')}` 可以放弃此订单")
+            return
+
+        # 保存接单人信息用于提示
+        acceptor_name = target_order.get("acceptor_name", "未知")
+
+        # 放弃订单：清空接单人信息，状态改为待接单
+        target_order["status"] = "pending"
+        target_order["acceptor_id"] = None
+        target_order["acceptor_name"] = None
+        self._save_data()
+
+        yield event.plain_result(
+            f"✅ {acceptor_name} 已放弃订单 `{order_id}`！\n\n"
+            f"📦 **订单号**: {order_id}\n"
+            f"📝 **内容**: {target_order['content']}\n"
+            f"👤 **委托人**: {target_order['client_name']}\n"
+            f"📌 **状态**: 📋 待接单\n"
+            f"💰 **报酬**: {target_order.get('reward', '无')}\n\n"
+            f"💡 该订单已重新回到待接单列表，其他成员可再次接取"
+        )
     @filter.command("删除订单",alias={"删除","shanchu","shanchudingdan"})
     async def cmd_删除订单(self, event: AstrMessageEvent):
         """删除订单"""
@@ -463,13 +525,13 @@ class GuildOrdersPlugin(Star):
             yield event.plain_result("❌ 请指定订单号\n用法: `/删除订单 [订单号]`")
             return
 
-        order_id = parts[1].strip()
+        order_id = parts[1].strip().upper()
         group_orders = self._get_group_orders(group_id)
 
         target_idx = None
         target_order = None
         for idx, o in enumerate(group_orders):
-            if o["order_id"] == order_id:
+            if o["order_id"].upper() == order_id:
                 target_idx = idx
                 target_order = o
                 break
