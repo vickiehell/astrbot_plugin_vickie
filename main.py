@@ -449,7 +449,7 @@ class GuildOrdersPlugin(Star):
             f"💰 **新报酬**: {target_order.get('reward', '无')}\n\n"
             f"📌 **当前状态**: {self._order_to_text(target_order)}"
         )
-    @filter.command("放弃订单")
+    @filter.command("放弃订单",alias={"放弃","fangqi","fangqidingdan"})
     async def cmd_放弃订单(self, event: AstrMessageEvent):
         """
         放弃已接取的订单（仅接单人）
