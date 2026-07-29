@@ -134,7 +134,7 @@ class GuildOrdersPlugin(Star):
         return "\n".join(lines)
 
     # ==================== 命令处理器 ====================
-    @filter.command("帮助",alias={"help","指令","helpme","bangzhu"})
+    @filter.command("帮助",alias={"help","指令","helpme","bangzhu","菜单","caidan"})
     async def cmd_帮助(self, event: AstrMessageEvent):
         """显示帮助信息"""
         help_text = (
