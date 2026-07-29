@@ -190,11 +190,15 @@ class GuildOrdersPlugin(Star):
         reward = ""
         content = raw_content
         if "报酬:" in raw_content:
-            split_idx = raw_content.find("报酬:")
+            split_idx = raw_content.find("报酬:") + len("报酬:")
             content = raw_content[:split_idx].strip()
             reward = raw_content[split_idx:].strip()
         elif "报酬：" in raw_content:
-            split_idx = raw_content.find("报酬：")
+            split_idx = raw_content.find("报酬：")+len("报酬：")
+            content = raw_content[:split_idx].strip()
+            reward = raw_content[split_idx:].strip()
+        elif "报酬" in raw_content:
+            split_idx = raw_content.find("报酬")+len("报酬")
             content = raw_content[:split_idx].strip()
             reward = raw_content[split_idx:].strip()
 
