@@ -144,7 +144,9 @@ class GuildOrdersPlugin(Star):
             "示例：`/委托 帮我挖钻石 报酬:10钻石`\n\n"
             
             "📋 **查看订单**\n"
-            "`/订单列表`\n\n"
+            "`/订单列表`查看所有订单\n\n"
+            "`/订单列表 待接取`查看待接取订单\n\n"
+            "`/订单列表 进行中`查看进行中订单\n\n"
             
             "🤝 **接取订单**\n"
             "`/接单 订单号`\n"
@@ -238,21 +240,61 @@ class GuildOrdersPlugin(Star):
             f"💡 其他成员可使用 `/接单 {order['order_id']}` 接取此订单"
         )
 
-    @filter.command("订单列表",alias={"dingdanliebiao","dingdan","订单","列表"})
+    @filter.command("订单列表", alias={"dingdanliebiao","dingdan","订单","列表"})
     async def cmd_订单列表(self, event: AstrMessageEvent):
-        """查询当前所有待接单和进行中的订单"""
+        """查询当前所有待接单和进行中的订单
+        用法：/订单列表 [进行中/待接取]
+        """
         group_id = event.message_obj.group_id
         if not group_id:
             yield event.plain_result("❌ 该功能仅支持群聊")
             return
 
+        # 获取消息文本内容
+        message_text = event.message_obj.message_str or ""
+        # 移除命令前缀，获取参数
+        # 注意：这里假设命令格式为 "/订单列表 进行中" 或 "/订单列表待接取"
+        parts = message_text.strip().split()
+        filter_param = None
+        if len(parts) > 1:
+            filter_param = parts[1]  # 获取第一个参数
+        elif len(parts) == 1 and len(parts[0]) > 1:
+            # 处理没有空格的情况，如 "/订单列表进行中"
+            cmd_text = parts[0]
+            # 移除命令部分，提取参数
+            for cmd in ["/订单列表", "/dingdanliebiao", "/dingdan", "/订单", "/列表"]:
+                if cmd_text.startswith(cmd):
+                    param_part = cmd_text[len(cmd):]
+                    if param_part:
+                        filter_param = param_part
+                    break
+        
         group_orders = self._get_group_orders(group_id)
-        pending = [o for o in group_orders if o.get("status") == "pending"]
-        accepted = [o for o in group_orders if o.get("status") == "accepted"]
-
-        if not pending and not accepted:
-            yield event.plain_result("📭 当前没有进行中的订单")
-            return
+        param1=["进行中","已接取","已接单","jingxingzhong","yijiequ","yijiedan"]
+        param2=["待接取","未接取","待接","未接","daijiequ","weijiequ","daijie","weijie"]
+        # 根据参数过滤订单
+        if filter_param in param1:
+            filtered_orders = [o for o in group_orders if o.get("status") == "accepted"]
+            if not filtered_orders:
+                yield event.plain_result("📭 当前没有进行中的订单")
+                return
+            pending = []
+            accepted = filtered_orders
+        elif filter_param in param2:
+            filtered_orders = [o for o in group_orders if o.get("status") == "pending"]
+            if not filtered_orders:
+                yield event.plain_result("📭 当前没有待接取的订单")
+                return
+            pending = filtered_orders
+            accepted = []
+        else:
+            # 无参数或参数不合法，显示所有订单
+            pending = [o for o in group_orders if o.get("status") == "pending"]
+            accepted = [o for o in group_orders if o.get("status") == "accepted"]
+            
+            if not pending and not accepted:
+                yield event.plain_result("📭 当前没有进行中的订单")
+                return
 
         lines = []
         if pending:
