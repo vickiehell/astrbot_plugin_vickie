@@ -370,7 +370,7 @@ class GuildOrdersPlugin(Star):
             f"💡 完成后请使用 `/完成 {order_id}` 关闭订单"
         )
 
-    @filter.command("完成",alias={"wancheng","结单"})
+    @filter.command("完成",alias={"wancheng","结单","完成订单","wanchengdingdan"})
     async def cmd_完成(self, event: AstrMessageEvent):
         """完成订单"""
         group_id = event.message_obj.group_id
