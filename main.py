@@ -270,7 +270,7 @@ class GuildOrdersPlugin(Star):
                     break
         
         group_orders = self._get_group_orders(group_id)
-        param1=["进行中","已接取","已接单","jingxingzhong","yijiequ","yijiedan"]
+        param1=["进行中","已接取","已接单","已接","yijie","jingxingzhong","yijiequ","yijiedan"]
         param2=["待接取","未接取","待接","未接","daijiequ","weijiequ","daijie","weijie"]
         # 根据参数过滤订单
         if filter_param in param1:
