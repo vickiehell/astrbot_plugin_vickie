@@ -263,6 +263,7 @@ class GuildOrdersPlugin(Star):
                 if o.get('reward'):
                     lines.append(f"    💰 报酬: {o['reward']}")
                 lines.append("")  # 空行分隔
+                lines.append(f"==================================")
         
         if accepted:
             lines.append(f"🔄 **进行中 ({len(accepted)})**:")
@@ -273,6 +274,7 @@ class GuildOrdersPlugin(Star):
                 if o.get('reward'):
                     lines.append(f"    💰 报酬: {o['reward']}")
                 lines.append("")  # 空行分隔
+                lines.append(f"==================================")
 
         lines.append("💡 使用 `/接单 [订单号]` 接取订单")
         yield event.plain_result("\n".join(lines))
