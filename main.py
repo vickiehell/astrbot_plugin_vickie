@@ -171,7 +171,7 @@ class GuildOrdersPlugin(Star):
             "💡 **提示**\n"
             "• 订单号从 `/订单列表` 中获取\n"
             "• 委托人不可以接自己的订单\n"
-            "• 所有指令都可以使用拼音和一些相近意思词语"
+            "• 所有指令都可以使用拼音和一些相近意思词语\n"
             "• 订单号大小写均可"
         )
         yield event.plain_result(help_text)
